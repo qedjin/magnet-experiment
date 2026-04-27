@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>자석에 붙는 물체 찾기 - 가상 실험</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <main id="app-frame" aria-label="자석에 붙는 물체 찾기 가상 실험">
+
+  <!-- ===== 3D 장면이 그려지는 캔버스 컨테이너 ===== -->
+  <div id="scene-container"></div>
+
+  <!-- ===== 상단 탭 ===== -->
+  <div id="top-tabs">
+    <button class="tab-btn active" data-tab="standard" data-short="탐구 활동">탐구 활동 실험하기</button>
+    <button class="tab-btn"          data-tab="custom"   data-short="내가 정한 물체">내가 정한 물체로 실험하기</button>
+  </div>
+
+  <!-- ===== 상단 우측 - 다시 하기 버튼 ===== -->
+  <div id="top-right-buttons">
+    <button id="sound-toggle-btn" title="소리 끄기">🔊</button>
+    <button id="home-btn" title="메인 화면으로">🏠 메인 화면</button>
+    <button id="reset-btn">🔄 다시 하기</button>
+  </div>
+
+  <!-- ===== 실험 진행 패널 (왼쪽 상단) ===== -->
+  <div id="tested-panel" class="hidden">
+    <div class="panel-title">🧪 실험 진행</div>
+    <ul id="tested-list"></ul>
+  </div>
+
+  <!-- ===== 상태 표시바 ===== -->
+  <div id="status-bar">막대자석을 드래그해서 물체 위로 옮겨 보세요.</div>
+
+  <!-- ========================================================= -->
+  <!-- 0단계: 메인 화면 - 두 가지 실험 모드 카드 선택                -->
+  <!-- ========================================================= -->
+  <div id="main-menu-screen" class="overlay">
+    <!-- 메인 화면 전용 소리 토글 버튼 (우측 상단) -->
+    <button id="menu-sound-toggle-btn" title="소리 끄기">🔊</button>
+    <div class="main-menu-card">
+      <h1 class="main-menu-title">🧲 자석에 붙는 물체 찾기</h1>
+      <p class="main-menu-sub">실험 방법을 골라 주세요!</p>
+      <div class="main-menu-row">
+        <div class="main-menu-box" id="menu-standard-box">
+          <div class="box-icon">🔬</div>
+          <div class="box-label">탐구 활동<br/>실험하기</div>
+          <div class="box-desc">미리 준비된 7가지 물체로<br/>실험해 보세요.</div>
+        </div>
+        <div class="main-menu-box" id="menu-custom-box">
+          <div class="box-icon">🧺</div>
+          <div class="box-label">내가 정한 물체로<br/>실험하기</div>
+          <div class="box-desc">원하는 물체를 골라<br/>직접 실험해 보세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 1단계: 시작 화면 - 실험 방법 + 예상하기 버튼                -->
+  <!-- ========================================================= -->
+  <div id="intro-screen" class="overlay hidden">
+    <!-- 실험 방법 카드 (X 버튼으로 닫으면 예상하기 박스가 나타남) -->
+    <div id="intro-method-card" class="intro-card">
+      <button id="intro-close-btn" class="intro-close" aria-label="닫기">✕</button>
+      <h2 class="intro-title">🔬 실험 방법</h2>
+      <ol class="intro-steps">
+        <li>막대자석에 붙는 물체와 붙지 않는 물체를 예상해 보세요.</li>
+        <li>막대자석을 움직여 각각의 물체에 가까이 해 보세요.</li>
+        <li>어떤 물체가 자석에 붙는지 찾아보세요.</li>
+      </ol>
+    </div>
+
+    <!-- 예상하기 박스 (실험 방법 카드 닫은 후에 나타남) -->
+    <div id="intro-predict-box" class="hidden">
+      <div class="character-box">
+        <div class="character"><img src="images/cat.png" alt="과학자 고양이"></div>
+        <div class="speech-column">
+          <div class="speech-bubble big">
+            막대자석에 어떤 물체가 붙고 붙지 않을지 <br/>실험 전에 예상해 보세요.
+          </div>
+          <div class="speech-buttons">
+            <button id="start-predict-btn" class="big-btn">예상하기</button>
+            <button id="skip-predict-btn" class="skip-btn">건너뛰기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- (커스텀 모드) 물체 고르기 화면                                -->
+  <!-- ========================================================= -->
+  <div id="custom-pick-screen" class="overlay hidden">
+    <div class="custom-card">
+      <h2>🧺 실험할 물체 고르기</h2>
+      <p class="sub">책상 위에 놓을 물체를 <b>2~7개</b> 선택하세요.</p>
+      <div id="custom-pick-grid" class="pick-grid">
+        <!-- JS에서 자동으로 채움 -->
+      </div>
+      <div class="custom-buttons">
+        <span id="custom-pick-count">선택: 0개</span>
+        <button id="custom-start-btn" class="big-btn" disabled>실험 시작</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 2단계: 예상하기 화면 - 표에 O/X 체크                         -->
+  <!-- ========================================================= -->
+  <div id="predict-screen" class="overlay hidden">
+    <div class="predict-card">
+      <h2>📝 나의 예상</h2>
+      <p class="sub">각 물체가 막대자석에 붙을지, 붙지 않을지 예상해 보세요.</p>
+      <table id="predict-table">
+        <thead>
+          <tr>
+            <th>물체</th>
+            <th>붙음 (O)</th>
+            <th>안 붙음 (X)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button id="finish-predict-btn" class="big-btn">예상 완료</button>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 실험 중 - 캐릭터 말풍선                                      -->
+  <!-- ========================================================= -->
+  <div id="experiment-message" class="character-popup hidden">
+    <div class="character-small"><img src="images/cat.png" alt="과학자 고양이"></div>
+    <div class="speech-bubble" id="experiment-message-text"></div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 4단계: 바구니에 다 넣었을 때 - "비교하기" 안내                 -->
+  <!-- ========================================================= -->
+  <div id="compare-screen" class="overlay hidden">
+    <div class="character-box">
+      <div class="character"><img src="images/cat.png" alt="과학자 고양이"></div>
+      <div class="speech-column">
+        <div class="speech-bubble big">
+          실험 결과와 나의 예상을 비교해 봐요.
+        </div>
+        <div class="speech-buttons">
+          <button id="compare-btn" class="big-btn">비교하기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 5단계: 비교 결과 표 보여주기                                  -->
+  <!-- ========================================================= -->
+  <div id="compare-result-screen" class="overlay hidden">
+    <div class="compare-card">
+      <h2>📊 예상 vs 실험 결과</h2>
+      <table id="compare-table">
+        <thead>
+          <tr>
+            <th>물체</th>
+            <th>나의 예상</th>
+            <th>실험 결과</th>
+            <th>정답?</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <button id="to-finish-btn" class="big-btn">다음으로</button>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 6단계: 정리하기 / 다시 하기 선택                              -->
+  <!-- ========================================================= -->
+  <!-- ========================================================= -->
+  <!-- 6단계: 정리하기 / 내가 정한 물체로 실험하기 / 다시 하기 선택 -->
+  <!-- ========================================================= -->
+  <div id="finish-screen" class="overlay hidden">
+    <div class="finish-card">
+      <h2>🎉 실험이 끝났어요! 🎉</h2>
+      <div class="finish-box-row">
+        <div class="finish-box" id="summary-box">
+          <div class="box-icon">📖</div>
+          <div class="box-label">정리하기</div>
+        </div>
+        <div class="finish-box" id="custom-box">
+          <div class="box-icon">🧺</div>
+          <div class="box-label">내가 정한 물체로<br/>실험하기</div>
+        </div>
+        <div class="finish-box" id="standard-box">
+          <div class="box-icon">🔬</div>
+          <div class="box-label">탐구 활동<br/>실험하기</div>
+        </div>
+        <div class="finish-box" id="retry-box">
+          <div class="box-icon">🔄</div>
+          <div class="box-label">다시 하기</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================= -->
+  <!-- 7단계: 정리하기 최종 문구                                     -->
+  <!-- ========================================================= -->
+  <div id="summary-screen" class="overlay hidden">
+    <div class="character-box">
+      <div class="character"><img src="images/cat.png" alt="과학자 고양이"></div>
+      <div class="speech-bubble big">
+        - 철로 된 물체와 자석은 <b>붙습니다</b>. <br/>
+        - 유리, 나무, 알루미늄, 플라스틱으로 된 물체와 자석은 <b>붙지 않습니다</b>.
+      </div>
+    </div>
+    <button id="summary-close-btn" class="big-btn">닫기</button>
+  </div>
+
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

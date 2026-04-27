@@ -1,0 +1,1705 @@
+/* =========================================================
+   자석 실험 - 기본 스타일
+   초보자 팁: 색상/폰트 크기는 여기서 자유롭게 바꿀 수 있어요.
+   ========================================================= */
+
+/* 경기천년 3종 서체 등록 */
+/* - Light:  가벼운 본문 (부가 설명 등) */
+/* - Medium: 본문 기본, 표 데이터, 진행 패널 등 */
+/* - Bold:   제목, 버튼, 강조, 말풍선, 탭 */
+@font-face {
+  font-family: 'GyeonggiTitle';
+  src: url('fonts/경기천년제목_Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'GyeonggiTitle';
+  src: url('fonts/경기천년제목_Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'GyeonggiTitle';
+  src: url('fonts/경기천년제목_Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'GyeonggiTitle', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+}
+
+body {
+  font-family: 'GyeonggiTitle', 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif;
+  font-weight: 500;  /* 기본은 Medium */
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  overflow: hidden;
+  color: #222;
+}
+
+/* 3D 장면이 그려지는 영역 (전체 화면) */
+#scene-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+}
+
+/* =========================================================
+   상단 상태 표시바 (자성 반응 텍스트가 여기 나옴)
+   ========================================================= */
+#status-bar {
+  position: fixed;
+  top: 100px;                 /* 탭 아래에 위치 (탭이 더 커져서 거리 늘림) */
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+  padding: 16px 42px;
+  border-radius: 50px;
+  font-size: 19px;            /* 16 → 19 글씨 키움 */
+  font-weight: 700;
+  box-shadow:
+    0 10px 28px rgba(100, 150, 220, 0.35),
+    inset 0 -3px 8px rgba(144, 202, 249, 0.2),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8);    /* 위쪽 하이라이트 */
+  z-index: 10;
+  max-width: 80vw;
+  text-align: center;
+  color: #0d47a1;
+  border: 3px solid #90caf9;
+  letter-spacing: 0.5px;
+  /* 살짝 통통 떠다니는 효과 */
+  animation: statusFloat 4s ease-in-out infinite;
+}
+
+@keyframes statusFloat {
+  0%, 100% { transform: translate(-50%, 0); }
+  50%      { transform: translate(-50%, -4px); }
+}
+
+/* =========================================================
+   상단 탭 (실험하기 / 내가 정한 물체로 실험하기)
+   ========================================================= */
+#top-tabs {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+  padding: 8px;
+  border-radius: 50px;
+  box-shadow:
+    0 10px 30px rgba(100, 150, 220, 0.35),
+    inset 0 -3px 8px rgba(144, 202, 249, 0.2),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8);    /* 위쪽 하이라이트로 입체감 */
+  z-index: 10;
+  border: 3px solid #90caf9;
+}
+
+.tab-btn {
+  background: transparent;
+  color: #1565c0;
+  border: none;
+  padding: 14px 32px;          /* 11x26 → 14x32 더 큼직하게 */
+  font-size: 18px;             /* 15 → 18 글씨 키움 */
+  font-weight: 700;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.5px;
+  position: relative;
+}
+.tab-btn:hover:not(.active) {
+  background: #e3f2fd;
+  transform: translateY(-2px);
+  color: #0d47a1;
+  box-shadow: 0 4px 10px rgba(100, 150, 220, 0.2);
+}
+.tab-btn.active {
+  background: linear-gradient(135deg, #64b5f6 0%, #1976d2 100%);
+  color: white;
+  box-shadow:
+    0 6px 18px rgba(25, 118, 210, 0.5),
+    inset 0 1px 3px rgba(255, 255, 255, 0.5),    /* 안쪽 위 하이라이트 */
+    inset 0 -2px 4px rgba(13, 71, 161, 0.2);     /* 안쪽 아래 음영 */
+  transform: translateY(-2px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);    /* 글자 그림자로 또렷하게 */
+}
+
+/* =========================================================
+   상단 우측 - 다시 하기 버튼
+   ========================================================= */
+#top-right-buttons {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+#top-right-buttons button {
+  background: linear-gradient(135deg, #ffa07a, #ff7043);
+  color: white;
+  border: none;
+  padding: 10px 22px;
+  font-size: 15px;
+  font-weight: bold;
+  border-radius: 30px;
+  cursor: pointer;
+  box-shadow: 0 5px 14px rgba(255, 112, 67, 0.35);
+  transition: transform 0.15s ease;
+}
+#top-right-buttons button:hover {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+/* 소리 토글 버튼 - 동그란 모양, 보라색 테마 */
+#sound-toggle-btn {
+  background: linear-gradient(135deg, #ba68c8, #8e24aa) !important;
+  width: 48px !important;
+  height: 48px;
+  padding: 0 !important;
+  font-size: 22px !important;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 5px 14px rgba(142, 36, 170, 0.4) !important;
+}
+#sound-toggle-btn:hover {
+  transform: scale(1.1) !important;
+}
+
+/* =========================================================
+   오버레이 (화면 가운데에 뜨는 안내창)
+   ========================================================= */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(60, 80, 120, 0.45);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+  padding: 30px;
+}
+
+.overlay.hidden {
+  display: none;
+}
+
+.overlay h2 {
+  color: white;
+  font-size: 38px;
+  margin-bottom: 12px;
+  text-shadow: 3px 3px 0 rgba(25, 118, 210, 0.5);
+  letter-spacing: 1px;
+}
+
+.overlay .sub {
+  color: white;
+  font-size: 19px;
+  margin-bottom: 22px;
+  text-shadow: 2px 2px 0 rgba(25, 118, 210, 0.4);
+}
+
+/* =========================================================
+   캐릭터 + 말풍선
+   ========================================================= */
+.character-box {
+  display: flex;
+  flex-direction: row;          /* 가로 배치: 왼쪽 캐릭터 + 오른쪽 말풍선 */
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.character {
+  /* 동그라미 배경 제거 - 캐릭터 이미지 자체만 보이도록 */
+  width: 360px;                 /* 1.5배 확대 (240 → 360) */
+  height: 360px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: bob 2s ease-in-out infinite;
+  /* 투명 PNG 캐릭터에 부드러운 그림자 (입체감) */
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.25));
+  flex-shrink: 0;
+}
+
+.character img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  display: block;
+}
+
+.character-small {
+  width: 225px;                 /* 1.5배 확대 (150 → 225) */
+  height: 225px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.25));
+}
+
+.character-small img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  display: block;
+}
+
+@keyframes bob {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50%      { transform: translateY(-10px) rotate(2deg); }
+}
+
+.speech-bubble {
+  background: white;
+  padding: 22px 32px;
+  border-radius: 28px;
+  font-size: 22px;
+  font-weight: bold;
+  position: relative;
+  box-shadow: 0 6px 22px rgba(100, 150, 220, 0.25);
+  max-width: 640px;            /* 텍스트 잘림 방지 위해 너비 확대 (500 → 640) */
+  line-height: 1.5;
+  border: 3px solid #ffe082;
+  color: #444;
+  /* 한국어 단어 중간에서 줄바꿈되지 않도록 (어색한 행갈이 방지) */
+  word-break: keep-all;
+  word-wrap: break-word;
+}
+.speech-bubble.big {
+  font-size: 26px;
+  padding: 28px 38px;
+  max-width: 720px;            /* big 말풍선은 더 넓게 */
+}
+
+/* 말풍선 꼬리 (왼쪽을 가리키는 삼각형 - 캐릭터 머리 방향) */
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  left: -18px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 14px solid transparent;
+  border-bottom: 14px solid transparent;
+  border-right: 18px solid #ffe082;
+}
+.speech-bubble::after {
+  content: '';
+  position: absolute;
+  left: -13px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 11px solid transparent;
+  border-bottom: 11px solid transparent;
+  border-right: 13px solid white;
+}
+
+/* =========================================================
+   실험 중 캐릭터 팝업 (하단 중앙)
+   - 캐릭터(왼쪽)와 노란 말풍선(오른쪽)이 분리되어 캐릭터가 말하는 것처럼 보이게
+   ========================================================= */
+.character-popup {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 50;
+  /* 박스 배경/테두리 제거 - 캐릭터와 말풍선이 별도 요소로 보이도록 */
+  background: transparent;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+  animation: popIn 0.4s ease-out;
+}
+
+.character-popup.hidden {
+  display: none;
+}
+
+@keyframes popIn {
+  from { transform: translate(-50%, 20px); opacity: 0; }
+  to   { transform: translate(-50%, 0);     opacity: 1; }
+}
+
+/* 노란 말풍선 - 캐릭터가 말하는 것처럼 꼬리가 왼쪽 캐릭터 쪽 가리킴 */
+.character-popup .speech-bubble {
+  background: linear-gradient(135deg, #fffde7, #fff9c4);
+  padding: 18px 30px;
+  font-size: 22px;
+  border: 3px solid #ffe082;
+  border-radius: 28px;
+  box-shadow: 0 6px 22px rgba(255, 193, 7, 0.4);
+  position: relative;
+  color: #444;
+  font-weight: bold;
+  word-break: keep-all;
+  word-wrap: break-word;
+}
+
+/* 말풍선 꼬리 (왼쪽으로 - 캐릭터 머리 방향) */
+.character-popup .speech-bubble::before {
+  content: '';
+  display: block;
+  position: absolute;
+  left: -18px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 14px solid transparent;
+  border-bottom: 14px solid transparent;
+  border-right: 18px solid #ffe082;
+}
+.character-popup .speech-bubble::after {
+  content: '';
+  display: block;
+  position: absolute;
+  left: -13px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-top: 11px solid transparent;
+  border-bottom: 11px solid transparent;
+  border-right: 13px solid #fff9c4;
+}
+
+/* =========================================================
+   큰 버튼 (예상하기, 비교하기 등)
+   ========================================================= */
+.big-btn {
+  background: linear-gradient(135deg, #64b5f6, #1976d2);
+  color: white;
+  border: none;
+  padding: 18px 52px;
+  font-size: 22px;
+  font-weight: bold;
+  border-radius: 35px;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  letter-spacing: 0.5px;
+}
+.big-btn:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 8px 24px rgba(25, 118, 210, 0.45);
+}
+.big-btn:active {
+  transform: scale(1.02);
+}
+
+/* =========================================================
+   예상 표 / 비교 표
+   ========================================================= */
+table {
+  background: white;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 8px 22px rgba(100, 150, 220, 0.3);
+  margin-bottom: 25px;
+  min-width: 400px;
+  border: 3px solid #ffe082;
+}
+
+table th, table td {
+  padding: 14px 22px;
+  text-align: center;
+  border-bottom: 1px solid #f0e5c0;
+  font-size: 18px;
+}
+
+table th {
+  background: linear-gradient(135deg, #42a5f5, #1976d2);
+  color: white;
+  font-weight: bold;
+}
+
+table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+table tbody tr:hover {
+  background: #fff8e1;
+}
+
+/* 예상 표의 O/X 라디오 버튼 */
+.predict-radio {
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+}
+
+/* 정답/오답 표시 */
+.correct {
+  color: #2e7d32;
+  font-weight: bold;
+  font-size: 22px;
+}
+.wrong {
+  color: #c62828;
+  font-weight: bold;
+  font-size: 22px;
+}
+
+/* =========================================================
+   정리하기 / 다시 하기 박스
+   ========================================================= */
+.finish-box-row {
+  display: flex;
+  gap: 50px;
+  margin-top: 20px;
+}
+
+.finish-box {
+  width: 240px;
+  height: 240px;
+  border-radius: 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  /* 흰색 안쪽 + 컬러 테두리 + 부드러운 그림자 */
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  border: 5px solid;
+  /* 살짝 통통 튀는 애니메이션 */
+  animation: floatBox 3s ease-in-out infinite;
+}
+
+/* 박스 위쪽에 컬러 띠 추가 (예쁜 헤더 효과) */
+.finish-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  border-radius: 32px 32px 0 0;
+  z-index: 0;
+  opacity: 0.18;
+}
+
+/* 정리하기 박스 - 따뜻한 핑크/주황 테마 */
+#summary-box {
+  border-color: #ffb74d;
+  box-shadow:
+    0 10px 25px rgba(255, 152, 0, 0.25),
+    inset 0 -4px 12px rgba(255, 183, 77, 0.15);
+}
+#summary-box::before {
+  background: linear-gradient(135deg, #ffe0b2, #ffcc80);
+}
+#summary-box .box-label {
+  color: #e65100;
+}
+
+/* 다시 하기 박스 - 시원한 파랑 테마 */
+#retry-box {
+  border-color: #64b5f6;
+  box-shadow:
+    0 10px 25px rgba(33, 150, 243, 0.25),
+    inset 0 -4px 12px rgba(100, 181, 246, 0.15);
+}
+#retry-box::before {
+  background: linear-gradient(135deg, #bbdefb, #90caf9);
+}
+#retry-box .box-label {
+  color: #0d47a1;
+}
+
+/* 호버 시 더 활기차게 */
+.finish-box:hover {
+  transform: translateY(-12px) scale(1.05);
+  animation-play-state: paused;
+}
+#summary-box:hover {
+  box-shadow:
+    0 18px 35px rgba(255, 152, 0, 0.4),
+    inset 0 -4px 12px rgba(255, 183, 77, 0.15);
+}
+#retry-box:hover {
+  box-shadow:
+    0 18px 35px rgba(33, 150, 243, 0.4),
+    inset 0 -4px 12px rgba(100, 181, 246, 0.15);
+}
+
+.finish-box .box-icon {
+  font-size: 90px;
+  margin-bottom: 18px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.18));
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease;
+}
+.finish-box:hover .box-icon {
+  transform: scale(1.15) rotate(-8deg);
+}
+#retry-box:hover .box-icon {
+  transform: scale(1.15) rotate(180deg);  /* 다시 하기는 회전! */
+}
+
+.finish-box .box-label {
+  font-size: 28px;
+  font-weight: bold;
+  position: relative;
+  z-index: 1;
+  letter-spacing: 1px;
+}
+
+/* 통통 떠다니는 애니메이션 (두 박스가 살짝 시차로 움직임) */
+@keyframes floatBox {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+#retry-box {
+  animation-delay: 1.5s;   /* 정리하기 박스와 시차 */
+}
+
+/* =========================================================
+   실험 진행 패널 (왼쪽 상단)
+   ========================================================= */
+#tested-panel {
+  position: fixed;
+  top: 140px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.97);
+  padding: 16px 20px;
+  border-radius: 22px;
+  box-shadow: 0 6px 18px rgba(100, 150, 220, 0.25);
+  z-index: 10;
+  min-width: 210px;
+  border: 3px solid #90caf9;
+}
+
+#tested-panel.hidden {
+  display: none;
+}
+
+#tested-panel .panel-title {
+  font-size: 17px;
+  font-weight: bold;
+  color: #1565c0;
+  margin-bottom: 12px;
+  text-align: center;
+  border-bottom: 2px dashed #bbdefb;
+  padding-bottom: 8px;
+}
+
+#tested-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+#tested-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  font-size: 15px;
+  color: #666;
+  transition: all 0.25s ease;
+  border-radius: 12px;
+  margin-bottom: 3px;
+}
+
+#tested-list li.tested {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+  color: #1b5e20;
+  font-weight: bold;
+  animation: pop 0.4s ease-out;
+}
+
+#tested-list li .icon {
+  font-size: 20px;
+  width: 24px;
+  text-align: center;
+}
+
+@keyframes pop {
+  0%   { transform: scale(0.8); }
+  50%  { transform: scale(1.15) rotate(-3deg); }
+  100% { transform: scale(1.0) rotate(0); }
+}
+
+/* =========================================================
+   실험 방법 카드 (인트로 화면)
+   ========================================================= */
+.intro-card {
+  position: relative;
+  background: linear-gradient(135deg, #ffffff, #f3faff);
+  padding: 28px 44px;
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(100, 150, 220, 0.3);
+  margin-bottom: 25px;
+  max-width: 620px;
+  border: 4px solid #90caf9;
+}
+
+/* 실험 방법 카드의 X 닫기 버튼 */
+.intro-close {
+  position: absolute;
+  top: 12px;
+  right: 15px;
+  background: #ffcdd2;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  color: #c62828;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(198, 40, 40, 0.25);
+}
+.intro-close:hover {
+  background: #ef5350;
+  color: white;
+  transform: rotate(90deg) scale(1.1);
+}
+
+/* 실험 방법 카드 자체도 hidden 되도록 */
+#intro-method-card.hidden {
+  display: none;
+}
+
+/* 예상하기 박스 (실험 방법 닫은 후 표시) */
+#intro-predict-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+#intro-predict-box.hidden {
+  display: none;
+}
+
+/* 건너뛰기 보조 버튼 (예상하기 아래) */
+.skip-btn {
+  background: transparent;
+  color: white;
+  border: 2px dashed rgba(255, 255, 255, 0.7);
+  padding: 8px 26px;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+}
+.skip-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: white;
+  transform: scale(1.05);
+}
+
+.intro-title {
+  font-size: 28px !important;
+  color: #1565c0 !important;
+  text-shadow: none !important;
+  margin-bottom: 18px !important;
+  text-align: center;
+}
+
+.intro-steps {
+  padding-left: 25px;
+  font-size: 19px;
+  line-height: 1.9;
+  color: #333;
+}
+
+.intro-steps li {
+  margin-bottom: 10px;
+}
+
+.intro-steps li::marker {
+  color: #ff7043;
+  font-weight: bold;
+}
+
+/* =========================================================
+   커스텀 모드 - 물체 고르기 화면
+   ========================================================= */
+.custom-card {
+  background: linear-gradient(135deg, #ffffff, #fffaf3);
+  padding: 32px 44px;
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(255, 152, 0, 0.2);
+  max-width: 720px;
+  max-height: 80vh;
+  overflow-y: auto;
+  border: 4px solid #ffcc80;
+}
+
+.custom-card h2 {
+  color: #e65100 !important;
+  text-shadow: none !important;
+  font-size: 28px !important;
+  margin-bottom: 10px !important;
+  text-align: center;
+}
+
+.custom-card .sub {
+  color: #666 !important;
+  text-shadow: none !important;
+  font-size: 16px !important;
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.pick-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.pick-item {
+  background: linear-gradient(135deg, #fafafa, #f0f0f0);
+  border: 3px solid transparent;
+  padding: 16px 10px;
+  border-radius: 20px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+  color: #555;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.pick-item:hover {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  transform: translateY(-3px) rotate(-1deg);
+  box-shadow: 0 6px 14px rgba(255, 152, 0, 0.25);
+}
+.pick-item.selected {
+  background: linear-gradient(135deg, #bbdefb, #90caf9);
+  border-color: #1976d2;
+  color: #0d47a1;
+  box-shadow: 0 6px 14px rgba(25, 118, 210, 0.35);
+}
+
+.pick-item .emoji {
+  font-size: 34px;
+  display: block;
+  margin-bottom: 6px;
+  filter: drop-shadow(0 2px 3px rgba(0,0,0,0.1));
+}
+
+.custom-buttons {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 18px;
+  gap: 15px;
+}
+
+#custom-pick-count {
+  font-size: 17px;
+  font-weight: bold;
+  color: #e65100;
+  background: #fff3e0;
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 2px solid #ffcc80;
+}
+
+.big-btn:disabled {
+  background: #bdbdbd !important;
+  cursor: not-allowed;
+  opacity: 0.6;
+  box-shadow: none !important;
+}
+.big-btn:disabled:hover {
+  transform: none;
+}
+
+/* =========================================================
+   서체 가중치 배분 (경기천년 Light/Medium/Bold)
+   - Bold(700):   제목, 버튼, 탭, 강조
+   - Medium(500): 본문, 표 데이터, 패널 아이템 (기본값)
+   - Light(300):  부가 설명, 보조 문구
+   ========================================================= */
+
+/* Bold(700) - 강조 */
+.overlay h2,
+.big-btn,
+.tab-btn,
+#top-right-buttons button,
+#status-bar,
+.speech-bubble,
+.intro-title,
+.intro-close,
+.custom-card h2,
+.pick-item,
+#custom-pick-count,
+table th,
+.finish-box .box-label,
+#tested-panel .panel-title,
+#tested-list li.tested {
+  font-weight: 700;
+}
+
+/* Medium(500) - 본문 기본 (명시적으로도 지정) */
+.intro-steps,
+table td,
+#tested-list li,
+.pick-item .item-name {
+  font-weight: 500;
+}
+
+/* Light(300) - 부가 설명 */
+.overlay .sub,
+.custom-card .sub {
+  font-weight: 300;
+}
+
+/* =========================================================
+   예상하기 카드 / 비교 결과 카드 (한 박스 안에 제목+표+버튼)
+   ========================================================= */
+.predict-card,
+.compare-card {
+  background: linear-gradient(135deg, #ffffff, #f3faff);
+  padding: 32px 44px;
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(100, 150, 220, 0.3);
+  border: 4px solid #90caf9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 90vw;
+  max-height: 88vh;
+  overflow-y: auto;
+}
+
+.predict-card h2,
+.compare-card h2 {
+  /* overlay h2의 흰색/그림자 스타일을 무효화하고 박스 안에 어울리게 */
+  color: #1565c0 !important;
+  text-shadow: none !important;
+  font-size: 30px !important;
+  margin-bottom: 18px !important;
+  text-align: center;
+}
+
+.predict-card .sub,
+.compare-card .sub {
+  color: #555 !important;
+  text-shadow: none !important;
+  font-size: 17px !important;
+  text-align: center;
+  margin-bottom: 22px !important;
+}
+
+/* 카드 안의 표는 그림자/테두리를 살짝 줄여 박스와 어울리게 */
+.predict-card table,
+.compare-card table {
+  margin-bottom: 22px;
+  box-shadow: 0 4px 12px rgba(100, 150, 220, 0.2);
+}
+
+/* =========================================================
+   정리하기 / 내가 정한 물체로 실험하기 / 다시 하기 큰 박스
+   ========================================================= */
+.finish-card {
+  background: linear-gradient(135deg, #ffffff, #f3faff);
+  padding: 36px 56px;
+  border-radius: 32px;
+  box-shadow: 0 12px 35px rgba(100, 150, 220, 0.3);
+  border: 5px solid #90caf9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 95vw;
+}
+
+.finish-card h2 {
+  color: #1565c0 !important;
+  text-shadow: none !important;
+  font-size: 36px !important;
+  margin-bottom: 28px !important;
+  text-align: center;
+}
+
+/* 큰 박스 안의 finish-box-row는 여백 제거 */
+.finish-card .finish-box-row {
+  margin-top: 0;
+}
+
+/* 가운데 - 내가 정한 물체로 실험하기 박스 (시원한 보라/녹색 테마) */
+#custom-box {
+  border-color: #81c784;
+  box-shadow:
+    0 10px 25px rgba(76, 175, 80, 0.25),
+    inset 0 -4px 12px rgba(129, 199, 132, 0.15);
+}
+#custom-box::before {
+  background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+}
+#custom-box .box-label {
+  color: #1b5e20;
+  font-size: 22px;          /* 두 줄이라 살짝 작게 */
+  line-height: 1.3;
+}
+#custom-box:hover {
+  box-shadow:
+    0 18px 35px rgba(76, 175, 80, 0.4),
+    inset 0 -4px 12px rgba(129, 199, 132, 0.15);
+}
+#custom-box:hover .box-icon {
+  transform: scale(1.15) rotate(-12deg);
+}
+
+/* 가운데 박스의 통통 애니메이션 시차 다르게 */
+#custom-box {
+  animation-delay: 0.75s;
+}
+
+/* finish-box를 hidden 처리할 때 강제로 안 보이게 */
+.finish-box.hidden {
+  display: none;
+}
+
+/* 가운데 - 탐구 활동 실험하기 박스 (보라 테마) */
+#standard-box {
+  border-color: #ba68c8;
+  box-shadow:
+    0 10px 25px rgba(156, 39, 176, 0.25),
+    inset 0 -4px 12px rgba(186, 104, 200, 0.15);
+}
+#standard-box::before {
+  background: linear-gradient(135deg, #e1bee7, #ce93d8);
+}
+#standard-box .box-label {
+  color: #4a148c;
+  font-size: 22px;
+  line-height: 1.3;
+}
+#standard-box:hover {
+  box-shadow:
+    0 18px 35px rgba(156, 39, 176, 0.4),
+    inset 0 -4px 12px rgba(186, 104, 200, 0.15);
+}
+#standard-box:hover .box-icon {
+  transform: scale(1.15) rotate(12deg);
+}
+
+/* 통통 애니메이션 시차 */
+#standard-box {
+  animation-delay: 1.0s;
+}
+
+/* 말풍선 + 버튼들을 한 세로 컬럼으로 묶기 */
+.speech-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+}
+
+/* 말풍선 아래 버튼들 컨테이너 - 중앙 정렬 */
+.speech-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+/* =========================================================
+   반응형 16:9 프레임
+   - PC/태블릿/스마트폰 모두 같은 16:9 비율 안에서 표시
+   - 남는 화면은 레터박스 영역으로 두어 비율이 깨지지 않게 유지
+   ========================================================= */
+html,
+body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  background: #0b1220;
+}
+
+#app-frame {
+  position: relative;
+  /* iOS/Android에서 URL바 등장/사라짐에 따른 점프 방지를 위해
+     small viewport unit(svh/svw)을 우선 사용. 미지원 브라우저는 vh/vw로 폴백. */
+  width: min(100vw, calc(100vh * 16 / 9));
+  height: min(100vh, calc(100vw * 9 / 16));
+  width: min(100svw, calc(100svh * 16 / 9));
+  height: min(100svh, calc(100svw * 9 / 16));
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.35);
+  isolation: isolate;
+  container-type: size;
+}
+
+#scene-container,
+#top-tabs,
+#top-right-buttons,
+#status-bar,
+#tested-panel,
+.overlay,
+.character-popup {
+  position: absolute;
+}
+
+#scene-container {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#scene-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none;
+}
+
+.overlay {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* =========================================================
+   모바일/낮은 화면 대응
+   - 스마트폰 세로: 16:9 프레임 높이가 작아지므로 UI를 크게 축소
+   - 스마트폰 가로: 높이 기준으로 UI가 넘치지 않도록 축소
+   ========================================================= */
+@media (max-width: 900px), (max-height: 600px), (hover: none) and (pointer: coarse) {
+  #app-frame {
+    box-shadow: none;
+  }
+
+  #top-tabs {
+    top: clamp(4px, 1.4cqh, 12px);
+    padding: clamp(3px, 0.8cqh, 8px);
+    gap: clamp(2px, 0.8cqw, 6px);
+    border-width: clamp(1px, 0.45cqh, 3px);
+    border-radius: 999px;
+  }
+
+  .tab-btn {
+    padding: clamp(4px, 1.6cqh, 12px) clamp(8px, 3.4cqw, 28px);
+    font-size: clamp(9px, 2.15cqh, 16px);
+    line-height: 1.1;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  #top-right-buttons {
+    top: clamp(5px, 1.6cqh, 18px);
+    right: clamp(5px, 1.6cqw, 18px);
+    gap: clamp(3px, 0.9cqw, 10px);
+  }
+
+  #top-right-buttons button {
+    padding: clamp(4px, 1.4cqh, 10px) clamp(8px, 2.4cqw, 20px);
+    font-size: clamp(9px, 1.9cqh, 14px);
+    border-radius: 999px;
+  }
+
+  #sound-toggle-btn {
+    width: clamp(26px, 6.8cqh, 46px) !important;
+    height: clamp(26px, 6.8cqh, 46px) !important;
+    font-size: clamp(13px, 3.2cqh, 22px) !important;
+  }
+
+  #status-bar {
+    top: clamp(34px, 12cqh, 95px);
+    padding: clamp(5px, 1.8cqh, 14px) clamp(12px, 4.8cqw, 38px);
+    font-size: clamp(10px, 2.25cqh, 18px);
+    max-width: 72cqw;
+    border-width: clamp(1px, 0.45cqh, 3px);
+    border-radius: 999px;
+    line-height: 1.2;
+  }
+
+  #tested-panel {
+    top: clamp(54px, 20cqh, 130px);
+    left: clamp(5px, 1.8cqw, 18px);
+    min-width: clamp(84px, 22cqw, 190px);
+    max-width: 30cqw;
+    padding: clamp(5px, 1.6cqh, 14px) clamp(6px, 1.8cqw, 18px);
+    border-width: clamp(1px, 0.45cqh, 3px);
+    border-radius: clamp(10px, 3cqh, 22px);
+  }
+
+  #tested-panel .panel-title {
+    font-size: clamp(9px, 2cqh, 16px);
+    margin-bottom: clamp(3px, 1cqh, 10px);
+    padding-bottom: clamp(3px, 1cqh, 8px);
+  }
+
+  #tested-list li {
+    gap: clamp(2px, 0.8cqw, 8px);
+    padding: clamp(2px, 0.9cqh, 7px) clamp(4px, 1.2cqw, 10px);
+    font-size: clamp(8px, 1.8cqh, 14px);
+    margin-bottom: 1px;
+    border-radius: clamp(6px, 1.8cqh, 12px);
+  }
+
+  #tested-list li .icon {
+    font-size: clamp(10px, 2.3cqh, 18px);
+    width: clamp(14px, 3cqw, 24px);
+  }
+
+  .overlay {
+    padding: clamp(6px, 2cqh, 24px);
+  }
+
+  .character-box {
+    gap: clamp(4px, 1.2cqw, 12px);
+    margin-bottom: clamp(6px, 2cqh, 24px);
+  }
+
+  .character {
+    width: clamp(70px, 26cqh, 300px);
+    height: clamp(70px, 26cqh, 300px);
+  }
+
+  .character-small {
+    width: clamp(52px, 18cqh, 170px);
+    height: clamp(52px, 18cqh, 170px);
+  }
+
+  .speech-bubble {
+    padding: clamp(7px, 2.2cqh, 20px) clamp(10px, 3.4cqw, 30px);
+    font-size: clamp(10px, 2.4cqh, 20px);
+    max-width: 56cqw;
+    border-width: clamp(1px, 0.5cqh, 3px);
+    border-radius: clamp(12px, 4cqh, 28px);
+    line-height: 1.35;
+  }
+
+  .speech-bubble.big {
+    font-size: clamp(11px, 2.8cqh, 24px);
+    padding: clamp(8px, 2.4cqh, 24px) clamp(12px, 3.8cqw, 34px);
+    max-width: 58cqw;
+  }
+
+  .speech-column {
+    gap: clamp(5px, 1.8cqh, 18px);
+  }
+
+  .speech-buttons {
+    gap: clamp(3px, 1cqh, 10px);
+  }
+
+  .big-btn,
+  .skip-btn {
+    padding: clamp(6px, 1.8cqh, 16px) clamp(14px, 4.2cqw, 46px);
+    font-size: clamp(10px, 2.4cqh, 20px);
+    border-radius: 999px;
+  }
+
+  .intro-card,
+  .predict-card,
+  .compare-card,
+  .custom-card,
+  .finish-card {
+    max-width: 86cqw;
+    max-height: 84cqh;
+    padding: clamp(10px, 3cqh, 28px) clamp(14px, 4cqw, 42px);
+    border-width: clamp(2px, 0.6cqh, 4px);
+    border-radius: clamp(14px, 4cqh, 30px);
+  }
+
+  .intro-title,
+  .custom-card h2,
+  .predict-card h2,
+  .compare-card h2,
+  .finish-card h2,
+  .overlay h2 {
+    font-size: clamp(15px, 4cqh, 30px) !important;
+    margin-bottom: clamp(6px, 1.8cqh, 18px) !important;
+  }
+
+  .intro-steps {
+    padding-left: clamp(16px, 4cqw, 24px);
+    font-size: clamp(10px, 2.3cqh, 17px);
+    line-height: 1.45;
+  }
+
+  .intro-steps li {
+    margin-bottom: clamp(3px, 1cqh, 8px);
+  }
+
+  .intro-close {
+    top: clamp(5px, 1.4cqh, 12px);
+    right: clamp(6px, 1.6cqw, 15px);
+    width: clamp(22px, 5.8cqh, 32px);
+    height: clamp(22px, 5.8cqh, 32px);
+    font-size: clamp(11px, 2.6cqh, 18px);
+  }
+
+  .overlay .sub,
+  .custom-card .sub,
+  .predict-card .sub,
+  .compare-card .sub {
+    font-size: clamp(9px, 2.1cqh, 16px) !important;
+    margin-bottom: clamp(8px, 2cqh, 20px) !important;
+  }
+
+  table {
+    min-width: min(360px, 78cqw);
+    margin-bottom: clamp(8px, 2cqh, 20px);
+  }
+
+  table th,
+  table td {
+    padding: clamp(5px, 1.4cqh, 12px) clamp(7px, 2cqw, 18px);
+    font-size: clamp(9px, 2cqh, 16px);
+  }
+
+  .predict-radio {
+    width: clamp(18px, 4.6cqh, 28px);
+    height: clamp(18px, 4.6cqh, 28px);
+  }
+
+  .pick-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(5px, 1.5cqh, 12px);
+    margin-bottom: clamp(8px, 2cqh, 18px);
+  }
+
+  .pick-item {
+    padding: clamp(5px, 1.5cqh, 14px) clamp(4px, 1.4cqw, 10px);
+    font-size: clamp(8px, 1.9cqh, 14px);
+    border-width: clamp(1px, 0.45cqh, 3px);
+    border-radius: clamp(10px, 3cqh, 18px);
+  }
+
+  .pick-item .emoji {
+    font-size: clamp(16px, 5cqh, 32px);
+    margin-bottom: clamp(2px, 0.8cqh, 6px);
+  }
+
+  .custom-buttons {
+    margin-top: clamp(6px, 1.6cqh, 16px);
+    gap: clamp(6px, 2cqw, 14px);
+  }
+
+  #custom-pick-count {
+    padding: clamp(4px, 1.2cqh, 8px) clamp(8px, 2.4cqw, 16px);
+    font-size: clamp(9px, 2cqh, 15px);
+    border-radius: 999px;
+  }
+
+  .finish-box-row {
+    gap: clamp(8px, 2.5cqw, 36px);
+    flex-wrap: nowrap;
+  }
+
+  .finish-box {
+    width: clamp(72px, 20cqw, 200px);
+    height: clamp(72px, 20cqw, 200px);
+    border-width: clamp(2px, 0.8cqh, 5px);
+    border-radius: clamp(14px, 4cqh, 32px);
+  }
+
+  .finish-box .box-icon {
+    font-size: clamp(22px, 7cqh, 58px);
+    margin-bottom: clamp(3px, 1cqh, 10px);
+  }
+
+  .finish-box .box-label,
+  #custom-box .box-label,
+  #standard-box .box-label {
+    font-size: clamp(9px, 2.2cqh, 20px);
+    line-height: 1.2;
+  }
+
+  .character-popup {
+    bottom: clamp(8px, 4cqh, 70px);
+    gap: clamp(4px, 1.2cqw, 12px);
+  }
+
+  .character-popup .speech-bubble {
+    padding: clamp(6px, 1.8cqh, 16px) clamp(10px, 3cqw, 26px);
+    font-size: clamp(10px, 2.4cqh, 20px);
+    max-width: 58cqw;
+  }
+}
+
+/* 매우 좁은 세로 스마트폰에서는 선택 카드/표가 16:9 프레임을 넘지 않도록 한 번 더 압축 */
+@media (max-width: 520px) and (hover: none) and (pointer: coarse) {
+  #status-bar {
+    top: 30px;
+    max-width: 64cqw;
+  }
+
+  #top-right-buttons button:not(#sound-toggle-btn) {
+    max-width: 22cqw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .character {
+    width: 22cqh;
+    height: 22cqh;
+  }
+
+  .speech-bubble.big {
+    max-width: 60cqw;
+  }
+
+  .pick-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .predict-card,
+  .compare-card,
+  .custom-card {
+    max-height: 88cqh;
+  }
+
+  table {
+    min-width: 72cqw;
+  }
+}
+
+/* =========================================================
+   작은 16:9 프레임(폰) - 책상 가운데 영역을 절대 가리지 않도록
+   - @container 쿼리: 뷰포트가 아닌 #app-frame의 실제 크기 기준
+     · 폰의 portrait/landscape 모두 프레임 폭이 작으면 똑같이 적용됨
+     · 예: portrait 폰(프레임 390×219), landscape 폰(프레임 693×390) 둘 다 해당
+   - 실험 진행 패널을 화면 바닥의 가로 띠로 변환
+     · 데스크탑은 좌측 상단(세로 리스트) → 폰에선 책상 표면을 절대 안 가림
+   ========================================================= */
+@container (max-width: 720px) {
+  /* 실험 진행 패널: 좌측 세로 박스 → 바닥의 가로 띠로 변환 */
+  #tested-panel {
+    top: auto;
+    bottom: clamp(6px, 2cqh, 18px);
+    left: clamp(4px, 1.5cqw, 12px);
+    right: clamp(4px, 1.5cqw, 12px);
+    /* 책상이 비치도록 반투명 처리 */
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+    min-width: 0;
+    max-width: none;
+    padding: clamp(3px, 1cqh, 9px) clamp(6px, 1.6cqw, 14px);
+    border-width: clamp(1px, 0.4cqh, 2px);
+    border-radius: clamp(10px, 2.5cqh, 18px);
+  }
+
+  /* 패널 안 제목 + 리스트를 한 줄에 가로로 배치 */
+  #tested-panel .panel-title {
+    font-size: clamp(8px, 1.7cqh, 12px);
+    margin: 0 clamp(4px, 1.2cqw, 10px) 0 0;
+    padding: 0 clamp(4px, 1.2cqw, 10px) 0 0;
+    border-bottom: none;
+    border-right: 2px dashed #bbdefb;
+    display: inline-block;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  #tested-list {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: clamp(2px, 0.6cqw, 6px);
+    vertical-align: middle;
+    width: auto;
+    max-width: calc(100% - 80px);
+  }
+
+  #tested-list li {
+    padding: clamp(1px, 0.4cqh, 3px) clamp(4px, 1cqw, 8px);
+    font-size: clamp(7px, 1.5cqh, 11px);
+    margin-bottom: 0;
+    border-radius: clamp(6px, 1.5cqh, 10px);
+    gap: clamp(1px, 0.4cqw, 4px);
+  }
+
+  #tested-list li .icon {
+    font-size: clamp(8px, 1.7cqh, 13px);
+    width: auto;
+  }
+
+  /* 캐릭터 말풍선 팝업: 바닥의 진행 패널 위로 살짝 들어올림 */
+  .character-popup {
+    bottom: clamp(38px, 12cqh, 110px);
+  }
+
+  /* 상태 표시바: 한 줄에 들어가도록 nowrap + 양옆 우측 버튼/탭과 겹치지 않게 폭 제한 */
+  #status-bar {
+    /* 상단 탭/버튼이 같은 위쪽 띠를 차지하므로 status-bar는 그 아래에 위치
+       max-width를 더 좁게 주고 white-space:nowrap으로 한 줄 유지 */
+    max-width: 86cqw;
+    font-size: clamp(8px, 1.7cqh, 13px);
+    padding: clamp(3px, 1cqh, 8px) clamp(8px, 2.6cqw, 22px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* 상단 탭: 우측 버튼들과 겹치지 않도록 가운데 정렬 대신 좌측 고정 */
+  #top-tabs {
+    /* 가운데 정렬 해제 - 좌측 상단에 고정해 우측 버튼들과 영역을 명확히 분리 */
+    left: clamp(4px, 1.2cqw, 10px);
+    transform: none;
+    /* 우측 버튼 영역(약 30%)을 비워두고 그 왼쪽까지만 사용 */
+    max-width: 64cqw;
+    gap: clamp(2px, 0.6cqw, 4px);
+    padding: clamp(2px, 0.7cqh, 6px);
+  }
+
+  /* 탭 버튼: 텍스트를 짧은 라벨(data-short)로 교체해 좁은 폰에서도 한 줄에 들어가게 */
+  .tab-btn {
+    padding: clamp(3px, 1.2cqh, 8px) clamp(5px, 2cqw, 14px);
+    font-size: clamp(8px, 1.75cqh, 12px);
+    white-space: nowrap;
+    /* 원래 텍스트는 숨기고 ::after로 짧은 라벨 표시 */
+    font-size: 0;
+    letter-spacing: 0;
+  }
+  .tab-btn::after {
+    content: attr(data-short);
+    font-size: clamp(8px, 1.75cqh, 12px);
+    letter-spacing: 0.3px;
+  }
+
+  /* 상단 우측 버튼: 한 줄 유지 + 사이즈 컴팩트 */
+  #top-right-buttons {
+    gap: clamp(2px, 0.6cqw, 6px);
+    flex-wrap: nowrap;
+  }
+
+  #top-right-buttons button:not(#sound-toggle-btn) {
+    padding: clamp(3px, 1cqh, 8px) clamp(5px, 1.4cqw, 12px);
+    font-size: clamp(8px, 1.6cqh, 12px);
+    max-width: none;
+    white-space: nowrap;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}
+
+/* =========================================================
+   메인 메뉴 화면 (탐구 활동 / 내가 정한 물체 카드 선택)
+   ========================================================= */
+#main-menu-screen {
+  /* main.png 원본 그대로 (틴트 없이) */
+  background: url('images/main.png') center / cover no-repeat;
+}
+
+/* 메인 메뉴 전용 소리 토글 버튼 (우측 상단) */
+#menu-sound-toggle-btn {
+  position: absolute;
+  top: clamp(8px, 2.4cqh, 22px);
+  right: clamp(8px, 2.4cqw, 22px);
+  background: linear-gradient(135deg, #ba68c8, #8e24aa);
+  color: white;
+  border: none;
+  width: clamp(36px, 8cqh, 52px);
+  height: clamp(36px, 8cqh, 52px);
+  padding: 0;
+  font-size: clamp(16px, 3.6cqh, 24px);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 16px rgba(142, 36, 170, 0.45);
+  transition: transform 0.15s ease;
+  z-index: 110;
+}
+#menu-sound-toggle-btn:hover {
+  transform: scale(1.1);
+}
+
+.main-menu-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f5faff 100%);
+  border-radius: clamp(14px, 3.5cqh, 36px);
+  /* 패딩을 프레임 비율로 조정 - 16:9 안에서 카드가 넘치지 않도록 */
+  padding: clamp(8px, 4cqh, 50px) clamp(12px, 5cqw, 60px);
+  box-shadow:
+    0 25px 60px rgba(30, 60, 120, 0.45),
+    inset 0 2px 4px rgba(255, 255, 255, 0.8);
+  border: clamp(2px, 0.7cqh, 4px) solid #90caf9;
+  text-align: center;
+  /* 절대 16:9 프레임을 넘지 않도록 cq 단위로 제한 */
+  max-width: 94cqw;
+  max-height: 94cqh;
+  box-sizing: border-box;
+  overflow: auto;
+}
+
+.main-menu-title {
+  /* 타이틀 크기를 프레임 크기에 비례 (긴 글씨가 한 줄에 들어가도록 cqw 기반) */
+  font-size: clamp(13px, 4.2cqw, 44px);
+  font-weight: 900;
+  color: #0d47a1;
+  margin: 0 0 clamp(2px, 0.8cqh, 8px) 0;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 0 rgba(144, 202, 249, 0.4);
+  white-space: nowrap;
+}
+
+.main-menu-sub {
+  font-size: clamp(9px, 2.2cqw, 22px);
+  color: #455a64;
+  margin: 0 0 clamp(4px, 2.5cqh, 35px) 0;
+  font-weight: 600;
+}
+
+.main-menu-row {
+  display: flex;
+  gap: clamp(6px, 4cqw, 40px);
+  justify-content: center;
+  flex-wrap: nowrap;   /* 작아도 가로 2개로 유지 */
+}
+
+.main-menu-box {
+  /* 카드 두 개가 가로로 나란히 들어가도록 가로폭은 cqw, 세로는 cqh로 */
+  /* 작은 프레임(폰 portrait)에선 floor를 낮춰 카드 영역이 넘치지 않게 */
+  width: clamp(80px, 28cqw, 280px);
+  height: clamp(90px, 50cqh, 320px);
+  border-radius: clamp(10px, 3cqh, 32px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #fafafa 100%);
+  border: clamp(2px, 0.55cqh, 5px) solid;
+  animation: floatBox 3s ease-in-out infinite;
+  padding: clamp(4px, 1.5cqh, 20px);
+  box-sizing: border-box;
+}
+
+.main-menu-box::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 50%;
+  border-radius: 28px 28px 0 0;
+  z-index: 0;
+  opacity: 0.18;
+}
+
+/* 탐구 활동 카드 - 보라 테마 */
+#menu-standard-box {
+  border-color: #ba68c8;
+  box-shadow:
+    0 12px 28px rgba(156, 39, 176, 0.3),
+    inset 0 -4px 12px rgba(186, 104, 200, 0.15);
+}
+#menu-standard-box::before {
+  background: linear-gradient(135deg, #e1bee7, #ce93d8);
+}
+#menu-standard-box .box-label {
+  color: #4a148c;
+}
+#menu-standard-box:hover {
+  transform: translateY(-12px) scale(1.05);
+  animation-play-state: paused;
+  box-shadow:
+    0 22px 40px rgba(156, 39, 176, 0.45),
+    inset 0 -4px 12px rgba(186, 104, 200, 0.15);
+}
+#menu-standard-box:hover .box-icon {
+  transform: scale(1.15) rotate(12deg);
+}
+
+/* 내가 정한 물체 카드 - 녹색 테마 */
+#menu-custom-box {
+  border-color: #81c784;
+  box-shadow:
+    0 12px 28px rgba(76, 175, 80, 0.3),
+    inset 0 -4px 12px rgba(129, 199, 132, 0.15);
+  animation-delay: 0.75s;
+}
+#menu-custom-box::before {
+  background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+}
+#menu-custom-box .box-label {
+  color: #1b5e20;
+}
+#menu-custom-box:hover {
+  transform: translateY(-12px) scale(1.05);
+  animation-play-state: paused;
+  box-shadow:
+    0 22px 40px rgba(76, 175, 80, 0.45),
+    inset 0 -4px 12px rgba(129, 199, 132, 0.15);
+}
+#menu-custom-box:hover .box-icon {
+  transform: scale(1.15) rotate(-12deg);
+}
+
+.main-menu-box .box-icon {
+  font-size: clamp(24px, 9cqw, 90px);
+  margin-bottom: clamp(2px, 1.2cqh, 14px);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.18));
+  position: relative;
+  z-index: 1;
+  transition: transform 0.3s ease;
+  line-height: 1;
+}
+
+.main-menu-box .box-label {
+  font-size: clamp(10px, 2.6cqw, 26px);
+  font-weight: bold;
+  position: relative;
+  z-index: 1;
+  letter-spacing: 0.5px;
+  line-height: 1.3;
+  margin-bottom: clamp(2px, 1cqh, 10px);
+}
+
+.main-menu-box .box-desc {
+  font-size: clamp(7px, 1.5cqw, 15px);
+  color: #555;
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
+  line-height: 1.4;
+}
